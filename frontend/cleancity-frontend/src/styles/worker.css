@@ -1,0 +1,132 @@
+/* PAGE */
+.worker-dashboard-page {
+  padding: 20px;
+  margin: auto;
+  max-width: 720px;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* PROFILE CARD */
+.worker-dashboard-card {
+  border-radius: 14px;
+  width: 120%;
+  padding: 18px;
+  margin-bottom: 20px;
+}
+
+/* PROFILE LAYOUT */
+.worker-dashboard-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  text-align: center;
+}
+
+.worker-dashboard-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.worker-dashboard-details h3 {
+  margin: 0;
+}
+
+.worker-role {
+  font-weight: 500;
+  color: #4caf50;
+  margin-top: 4px;
+}
+
+.worker-meta {
+  font-size: 14px;
+  color: #555;
+  margin-top: 6px;
+}
+
+/* TASKS */
+.worker-tasks-card {
+  background: white;
+  border-radius: 14px;
+  padding: 18px;
+  width:120%;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.worker-task-card {
+  border-top: 1px solid #eee;
+  padding: 14px 0;
+}
+
+.worker-task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.worker-task-meta {
+  font-size: 14px;
+  margin: 6px 0;
+  color: #555;
+}
+
+.worker-dashboard-upload-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.worker-upload-label{
+    margin: 10px 0;
+    padding: 0;
+}
+
+.worker-dashboard-upload-label {
+  background: #e0e0e0;
+  color: #333;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.worker-dashboard-upload-label:hover {
+  background: #d6d6d6;
+}
+
+/* HIDE REAL INPUT */
+.worker-dashboard-upload-label input {
+  display: none;
+}
+
+/* UPLOAD BUTTON */
+.worker-dashboard-upload-btn {
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.worker-dashboard-upload-btn:hover {
+  background: #43a047;
+}
+
+/* STATUS TEXT */
+.worker-dashboard-upload-status {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #4caf50;
+  font-weight: 500;
+}

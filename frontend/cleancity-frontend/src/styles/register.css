@@ -1,0 +1,115 @@
+/* PAGE BACKGROUND */
+.register-page {
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(135deg, #4caf50, #2e7d32);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* MAIN CARD */
+.register-container {
+  background: #ffffff;
+  width: 100%;
+  max-width: 380px;
+  padding: 22px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* TITLE */
+.register-title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #222;
+}
+
+/* LABELS */
+.register-container label {
+  display: block;
+  margin-top: 14px;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #444;
+}
+
+/* INPUTS & SELECT */
+.register-container input{
+    width: 92%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    background-color: #fafafa;
+}
+.register-container select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  background-color: #fafafa;
+}
+
+.register-container input:focus,
+.register-container select:focus {
+  outline: none;
+  border-color: #4caf50;
+  background-color: #ffffff;
+}
+
+/* FILE INPUT */
+.register-container input[type="file"] {
+  padding: 6px;
+  background: transparent;
+  border: none;
+}
+
+/* REGISTER BUTTON */
+.register-btn {
+  width: 100%;
+  margin-top: 22px;
+  padding: 12px;
+  background: #4caf50;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.register-btn:hover {
+  background: #43a047;
+}
+
+/* STATUS MESSAGE */
+.status-text {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 13px;
+  color: #d32f2f;
+}
+
+/* FOOTER */
+.register-footer {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 14px;
+  color: #555;
+}
+
+.register-footer a {
+  color: #4caf50;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.register-footer a:hover {
+  text-decoration: underline;
+}

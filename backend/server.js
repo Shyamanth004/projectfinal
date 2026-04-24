@@ -29,12 +29,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 const dailyPosts = {};
-const userPoints = {};
 
 const fs = require("fs");
-
-// Track monthly successful complaints
-const monthlyComplaints = {};
 
 const otpStore = {};   // phone -> otp
 
@@ -44,58 +40,6 @@ function maskAadhar(aadhar) {
 
 function isValidAadhar(aadhar) {
   return /^\d{12}$/.test(aadhar);
-}
-
-function initializeOrResetPoints(userId) {
-  const now = new Date();
-  const currentMonth = now.toISOString().slice(0, 7); // YYYY-MM
-  const currentYear = now.getFullYear().toString();
-
-  if (!userPoints[userId]) {
-    userPoints[userId] = {
-      totalPoints: 0,
-      monthlyPoints: 0,
-      yearlyPoints: 0,
-      lastMonth: currentMonth,
-      lastYear: currentYear
-    };
-    return;
-  }
-
-  // Reset monthly points if month changed
-  if (userPoints[userId].lastMonth !== currentMonth) {
-    userPoints[userId].monthlyPoints = 0;
-    userPoints[userId].lastMonth = currentMonth;
-  }
-
-  // Reset yearly points if year changed
-  if (userPoints[userId].lastYear !== currentYear) {
-    userPoints[userId].yearlyPoints = 0;
-    userPoints[userId].lastYear = currentYear;
-  }
-}
-
-function getWardLeaderboard(ward, type) {
-  const leaderboard = [];
-
-  for (const userId in userPoints) {
-    if (userWards[userId] !== ward) continue;
-    const user = phoneUsers.find(u => u.id == userId);
-    if (!user || user.role !== "user") continue;
-    leaderboard.push({
-      userId: Number(userId),
-      points:
-        type === "monthly"
-          ? userPoints[userId].monthlyPoints
-          : userPoints[userId].yearlyPoints,
-      username: user.username
-    });
-  }
-
-  // Sort descending
-  leaderboard.sort((a, b) => b.points - a.points);
-
-  return leaderboard;
 }
 
 app.use(express.json());
@@ -232,15 +176,16 @@ app.post(
 
       const result = await pool.query(
         `INSERT INTO workers
-         (name, age, gender, ward, profile_image_url, status, join_date)
-         VALUES ($1,$2,$3,$4,$5,'ACTIVE',CURRENT_DATE)
+         (name, age, gender, ward, profile_image_url, status, join_date, phone)
+         VALUES ($1,$2,$3,$4,$5,'ACTIVE',CURRENT_DATE,$6)
          RETURNING *`,
         [
           name,
           age,
           gender,
           ward,
-          `/uploads/${req.file.filename}`
+          `/uploads/${req.file.filename}`,
+          phone
         ]
       );
 
@@ -402,19 +347,17 @@ app.post(
 
       // ✅ Only after AI success → award points
 
-      if (!userPoints[userId]) {
-        userPoints[userId] = {
-          totalPoints: 0,
-          monthlyPoints: 0,
-          yearlyPoints: 0
-        };
-      }
-
-      initializeOrResetPoints(userId);
-
-      userPoints[userId].totalPoints += 10;
-      userPoints[userId].monthlyPoints += 10;
-      userPoints[userId].yearlyPoints += 10;
+      // Save points in DB
+      await pool.query(
+        `INSERT INTO user_points (user_id, month, year, points)
+        VALUES ($1, $2, $3, $4)`,
+        [
+          userId,
+          new Date().getMonth() + 1,
+          new Date().getFullYear(),
+          10
+        ]
+      );
 
       // Save today's post
       dailyPosts[userId] = today;
@@ -422,7 +365,6 @@ app.post(
       res.json({
         message: "Daily waste post accepted",
         points_awarded: 10,
-        points: userPoints[userId],
         ai_response: aiResponse.data
       });
 
@@ -588,22 +530,30 @@ app.post(
     // 🔢 POINTS (temporary in-memory)
     const currentMonth = new Date().toISOString().slice(0, 7);
 
-    if (!monthlyComplaints[userId]) monthlyComplaints[userId] = {};
-    if (!monthlyComplaints[userId][currentMonth])
-      monthlyComplaints[userId][currentMonth] = 0;
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
 
-    if (monthlyComplaints[userId][currentMonth] >= 3) {
+    // Check how many rewards already given this month
+    const countResult = await pool.query(
+      `SELECT COUNT(*) FROM user_points
+      WHERE user_id = $1 AND month = $2 AND year = $3 AND points = 5`,
+      [userId, month, year]
+    );
+
+    if (parseInt(countResult.rows[0].count) >= 3) {
       return res.json({
         message: "Monthly complaint reward limit reached",
         points_awarded: 0
       });
     }
 
-    initializeOrResetPoints(userId);
-    userPoints[userId].totalPoints += 5;
-    userPoints[userId].monthlyPoints += 5;
-    userPoints[userId].yearlyPoints += 5;
-    monthlyComplaints[userId][currentMonth] += 1;
+    // Insert points
+    await pool.query(
+      `INSERT INTO user_points (user_id, month, year, points)
+      VALUES ($1, $2, $3, $4)`,
+      [userId, month, year, 5]
+    );
 
     res.json({
       message: "Cleanup approved and points awarded",
@@ -657,46 +607,121 @@ app.post(
 app.get(
   "/leaderboard/monthly",
   authorizeRole("user"),
-  (req, res) => {
+  async (req, res) => {
 
     const userId = req.headers["user-id"];
-    const ward = userWards[userId];
 
-    if (!ward) {
-      return res.status(400).json({ error: "Ward not found" });
+    try {
+      // 1️⃣ Get user's ward
+      const userResult = await pool.query(
+        `SELECT ward FROM users WHERE id = $1`,
+        [userId]
+      );
+
+      if (userResult.rowCount === 0) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const ward = userResult.rows[0].ward;
+
+      // 2️⃣ Get current month & year
+      const now = new Date();
+      const month = now.getMonth() + 1;
+      const year = now.getFullYear();
+
+      // 3️⃣ Leaderboard query
+      const leaderboard = await pool.query(
+        `SELECT 
+           u.id AS user_id,
+           u.name,
+           COALESCE(SUM(up.points), 0) AS points
+         FROM users u
+         LEFT JOIN user_points up
+           ON u.id = up.user_id
+           AND up.month = $1
+           AND up.year = $2
+         WHERE u.ward = $3
+         GROUP BY u.id, u.name
+         ORDER BY points DESC`,
+        [month, year, ward]
+      );
+
+      res.json({
+        ward,
+        type: "monthly",
+        leaderboard: leaderboard.rows
+      });
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Server error" });
     }
-
-    const leaderboard = getWardLeaderboard(ward, "monthly");
-
-    res.json({
-      ward,
-      type: "monthly",
-      leaderboard
-    });
   }
 );
 
-app.get(
-  "/leaderboard/yearly",
-  authorizeRole("user"),
-  (req, res) => {
+app.get("/leaderboard/yearly", authorizeRole("user"), async (req, res) => {
+  const userId = req.headers["user-id"];
 
-    const userId = req.headers["user-id"];
-    const ward = userWards[userId];
+  try {
+    const userResult = await pool.query(
+      `SELECT ward FROM users WHERE id = $1`,
+      [userId]
+    );
 
-    if (!ward) {
-      return res.status(400).json({ error: "Ward not found" });
+    if (userResult.rowCount === 0) {
+      return res.status(404).json({ error: "User not found" });
     }
 
-    const leaderboard = getWardLeaderboard(ward, "yearly");
+    const ward = userResult.rows[0].ward;
+    const year = new Date().getFullYear();
+
+    const leaderboard = await pool.query(
+      `SELECT 
+         u.id AS user_id,
+         u.name,
+         COALESCE(SUM(up.points), 0) AS points
+       FROM users u
+       LEFT JOIN user_points up
+         ON u.id = up.user_id
+         AND up.year = $1
+       WHERE u.ward = $2
+       GROUP BY u.id, u.name
+       ORDER BY points DESC`,
+      [year, ward]
+    );
 
     res.json({
       ward,
       type: "yearly",
-      leaderboard
+      leaderboard: leaderboard.rows
     });
+
+  } catch (err) {
+    console.error("YEARLY ERROR:", err);
+    res.status(500).json({ error: "Server error" });
   }
-);
+});
+
+app.get("/user-points", authorizeRole("user"), async (req, res) => {
+  const userId = req.headers["user-id"];
+
+  try {
+    const result = await pool.query(
+      `SELECT COALESCE(SUM(points), 0) AS total_points
+       FROM user_points
+       WHERE user_id = $1`,
+      [userId]
+    );
+
+    res.json({
+      totalPoints: result.rows[0].total_points
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch points" });
+  }
+});
 
 app.post("/send-otp", async (req, res) => {
   const { phone } = req.body;
@@ -829,7 +854,7 @@ app.get(
     const userId = req.headers["user-id"];
 
     const result = await pool.query(
-      `SELECT name, phone FROM users WHERE id = $1`,
+      `SELECT name, phone, gender, profile_image_url FROM users WHERE id = $1`,
       [userId]
     );
 

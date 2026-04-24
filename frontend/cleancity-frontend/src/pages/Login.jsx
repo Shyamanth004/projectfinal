@@ -44,43 +44,77 @@ export default function Login() {
   }
 
   return (
-    <div className="login-page">
-      <div className="login-container">
-        <div className="login-title">CleanCity Connect</div>
-        <div className="login-subtitle">
-          Smart Waste Management Platform
+    <div className="login-body">
+      <div className="login-page">
+        {/* Birds in sky */}
+        <div className="sky-icons">
+          <img src="/sky.png" className="bird-icon bird1" alt="" />
+          <img src="/sky.png" className="bird-icon bird2" alt="" />
         </div>
 
-        {otpStep === 1 && (
-          <>
-            <input
-              className="login-input"
-              placeholder="Enter phone number"
-              value={phone}
-              onChange={e => setPhone(e.target.value)}
-            />
-            <button className="login-btn" onClick={sendOtp}>
-              Send OTP
-            </button>
-          </>
-        )}
-
-        {otpStep === 2 && (
-          <>
-            <input
-              className="login-input"
-              placeholder="Enter OTP"
-              value={otp}
-              onChange={e => setOtp(e.target.value)}
-            />
-            <button className="login-btn" onClick={verifyOtp}>
-              Verify OTP
-            </button>
-          </>
-        )}
-        <div className="login-footer">
-            New user? <a href="/register">Register here</a>
+        {/* Trees at bottom */}
+        <div className="tree-icons">
+          <img src="/tree.png" className="tree-icon tree1" alt="" />
+          <img src="/tree.png" className="tree-icon tree2" alt="" />
         </div>
+
+        <div className="sun-icons">
+          <img src="/sun.png" className="sun-icon" alt="" />
+        </div>
+
+        <div className="lion-icons">
+          <img src="/lion.png" className="lion-icon" alt="" />
+        </div>
+
+        <div className="bush-icons">
+          <img src="/bush.png" className="bush-icon bush1" alt="" />
+          <img src="/bush.png" className="bush-icon bush2" alt="" />
+        </div>
+
+        <div className="rabbit-icons">
+          <img src="/rabbit.png" className="rabbit-icon" alt="" />
+        </div>
+
+        <div className="login-container">
+          <div className="login-title">CleanCity Connect</div>
+          <div className="login-subtitle">
+            Smart Waste Management Platform
+          </div>
+
+          {otpStep === 1 && (
+            <>
+              <input
+                className="login-input"
+                placeholder="Enter phone number"
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+              />
+              <button className="login-btn" onClick={sendOtp}>
+                Send OTP
+              </button>
+            </>
+          )}
+
+          {otpStep === 2 && (
+            <>
+              <input
+                className="login-input"
+                placeholder="Enter OTP"
+                value={otp}
+                onChange={e => setOtp(e.target.value)}
+              />
+              <button className="login-btn" onClick={verifyOtp}>
+                Verify OTP
+              </button>
+            </>
+          )}
+          <div className="login-footer">
+              New user? <a href="/register">Register here</a>
+          </div>
+        </div>
+        {/* <div className="login-anonym">
+          - Made In India
+        </div> */}
       </div>
     </div>
   );

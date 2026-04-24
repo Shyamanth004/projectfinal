@@ -4,7 +4,7 @@ import DailyPost from "../components/DailyPost";
 
 export default function UserDashboard() {
   return (
-    <div style={{ paddingBottom: "200px", height: "100vh", width: "39.7vh" }}>
+    <div style={{ paddingBottom: "260px", height: "100vh", width: "39.7vh" }}>
       <ProfileSection />
       <ComplaintsSection />
       <DailyPost />

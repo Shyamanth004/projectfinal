@@ -10,7 +10,6 @@
 /* PROFILE CARD */
 .worker-dashboard-card {
   border-radius: 14px;
-  width: 120%;
   padding: 18px;
   margin-bottom: 20px;
 }
@@ -52,7 +51,6 @@
   background: white;
   border-radius: 14px;
   padding: 18px;
-  width:120%;
   box-shadow: 0 6px 18px rgba(0,0,0,0.06);
 }
 
